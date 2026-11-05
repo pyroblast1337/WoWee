@@ -1,0 +1,30 @@
+#!/bin/sh
+# Entry point of the Wowee AppImage.
+#
+# The client changes into the directory its own executable lives in at startup
+# (src/main.cpp), and finds assets/, Data/ and addons/ there. That works
+# unchanged inside the read-only mount, so nothing is set up here for it.
+# Extracted game data and the config are per-user (~/.local/share/wowee,
+# ~/.wowee), not beside the executable, and are likewise not touched.
+#
+#   Wowee-*.AppImage                 run the client
+#   Wowee-*.AppImage --asset-manager run the asset manager window
+#   Wowee-*.AppImage --asset-extract run the command line extractor
+#                                    (--mpq-dir <WoW Data> --output <dir>)
+HERE="${APPDIR:-$(dirname "$(readlink -f "$0")")}"
+
+run() {
+    prog="$1"
+    shift
+    if [ ! -x "$HERE/usr/bin/$prog" ]; then
+        echo "$prog is not part of this AppImage (it was not built)." >&2
+        exit 1
+    fi
+    exec "$HERE/usr/bin/$prog" "$@"
+}
+
+case "${1:-}" in
+    --asset-manager) shift; run wowee_assets "$@" ;;
+    --asset-extract) shift; run asset_extract "$@" ;;
+esac
+run wowee "$@"

@@ -1,5 +1,20 @@
 # Changelog
 
+## [Unreleased]
+
+### Changed
+- **Linux builds are AppImages.** The release workflow, the CI build and `container/run-linux.sh` and `.ps1` now produce one `Wowee-<version>-<arch>.AppImage` and nothing else, in place of the `.tar.gz` release archive, the `.deb` CI artifact and the loose `build/linux` tree. It carries the libraries it links and needs only a Vulkan 1.3 driver. `asset_extract` and the asset manager run from it as `--asset-extract` and `--asset-manager`. The container build keeps its CMake build tree in the Docker volume `wowee-linux-build`, and rebuilds a builder image that predates this change. `packaging/appimage/build-appimage.sh` makes an AppImage from any build tree. Untested here: the ARM64 job and a run on a GPU
+
+- The AppImage carries this project's `LICENSE` and `NOTICE` and SDL3's licence under `usr/share/doc`. The builder image installs SDL3 as a `.deb`, so linuxdeploy finds its licence through dpkg. The build hides linuxdeploy's "Could not find copyright files" warnings for the client, its tools and the icon, which no package owns and whose licence the AppImage carries; a warning for any other file stays
+
+- The Linux container build no longer compiles the unit tests (`-DWOWEE_BUILD_TESTS=OFF`): nothing in it ran them, and they were about 900 of the 1,490 build steps. CI still builds and runs them
+
+### Fixed
+- The Linux builder image installs `ca-certificates`. `git` is installed without its recommended packages, so the image had no CA bundle and the `git clone` of SDL3 (and of the FidelityFX SDKs in `build-linux.sh`) failed certificate verification
+
+### Documentation
+- The README no longer lists packages per Linux distribution, since a Linux build needs none; the build guide keeps them for native development builds and gains the Fedora list
+
 ## [v3.1.54] - 2026-10-24
 
 ### Fixed

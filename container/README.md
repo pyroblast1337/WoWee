@@ -23,7 +23,15 @@ Run **from the project root directory**.
 .\container\run-linux.ps1
 ```
 
-Output: `build/linux/bin/wowee`
+Output: `build/linux/Wowee-<version>-<arch>.AppImage`, and nothing else - every
+Linux build ends as an AppImage. It carries the libraries from the image
+(Ubuntu 24.04 and SDL3 3.2), so it does not depend on the versions installed on
+the machine that runs it, and it needs only a Vulkan 1.3 driver there. See
+`packaging/appimage/build-appimage.sh` for what goes into it.
+
+The CMake build tree lives in the Docker volume `wowee-linux-build` rather than
+on the host, so a second run compiles only what changed. `docker volume rm
+wowee-linux-build` starts from scratch.
 
 ### macOS (cross-compile, arm64 default)
 
@@ -68,7 +76,8 @@ Output: `build/windows/bin/wowee.exe`
 
 The first build takes longer because Docker builds the toolchain image (installing compilers, vcpkg packages, etc.). Subsequent builds reuse the cached image and only run the compilation step.
 
-To force a full image rebuild:
+The Linux image is rebuilt on its own when it predates the last change to the
+build, so an update never runs an old image. To force a full image rebuild:
 ```bash
 ./container/run-linux.sh --rebuild-image
 ```
@@ -77,7 +86,7 @@ To force a full image rebuild:
 
 | Target | Binary | Size |
 |--------|--------|------|
-| Linux | `build/linux/bin/wowee` | ~135 MB |
+| Linux | `build/linux/Wowee-<version>-<arch>.AppImage` | ~85 MB |
 | macOS | `build/macos/bin/wowee` | ~40 MB |
 | Windows | `build/windows/bin/wowee.exe` | ~135 MB |
 
